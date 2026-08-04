@@ -57,7 +57,7 @@ export default function Register() {
         branch: needsBranch ? form.branch : undefined,
       });
       setSuccess(
-        `Registration submitted! Your UserID is ${res.data.userId}. Save this - you'll need it to log in and to reset your password. Your account is pending approval.`
+        `Registration submitted! Your UserID is ${res.data.userId} - save this, it's needed only to reset your password later (you'll log in with your phone number). Your account is pending approval.`
       );
       setForm(initialForm);
     } catch (err) {

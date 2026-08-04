@@ -1,10 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
+import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
+import CustomerEditModal from './CustomerEditModal';
 
 export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zones, branches }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingRecord, setEditingRecord] = useState(null);
 
   const [filters, setFilters] = useState({
     zone: '',
@@ -25,7 +28,7 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
         if (v) params[k] = v;
       });
       const res = await api.get('/customers', { params });
-      setRecords(res.data);
+      setRecords(sortDueTodayFirst(res.data));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load customer data');
     } finally {
@@ -51,6 +54,16 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Delete the visit record for "${name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/customers/${id}`);
+      loadData();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not delete this record');
+    }
   };
 
   const set = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
@@ -136,22 +149,26 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
                 {isTechnician && <th>Type</th>}
                 <th>Added By</th>
                 <th>Zone / Branch</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {records.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={isTechnician ? 9 : 8}>No {role.toLowerCase()} records match these filters.</td>
+                  <td colSpan={isTechnician ? 10 : 9}>No {role.toLowerCase()} records match these filters.</td>
                 </tr>
               )}
               {records.map((r) => (
-                <tr key={r._id}>
+                <tr key={r._id} className={isDueToday(r.nextVisitDate) ? 'row-due-today' : ''}>
                   <td>{r.name}</td>
                   <td>{r.phone}</td>
                   <td style={{ maxWidth: 220 }}>{r.liveLocation?.address || '-'}</td>
                   <td>{r.productName}</td>
                   <td>{new Date(r.visitDate).toLocaleDateString()}</td>
-                  <td>{r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}</td>
+                  <td>
+                    {r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}
+                    {isDueToday(r.nextVisitDate) && <span className="due-today-badge">Due Today</span>}
+                  </td>
                   {isTechnician && <td>{r.visitType || '-'}</td>}
                   <td>
                     {r.addedBy?.name} <small>({r.addedBy?.userId})</small>
@@ -159,11 +176,32 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
                   <td>
                     {r.zone?.name} / {r.branch?.name}
                   </td>
+                  <td>
+                    <div className="action-group">
+                      <button className="btn btn-outline btn-sm" onClick={() => setEditingRecord(r)}>
+                        Edit
+                      </button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r._id, r.name)}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {editingRecord && (
+        <CustomerEditModal
+          record={editingRecord}
+          onClose={() => setEditingRecord(null)}
+          onSaved={() => {
+            setEditingRecord(null);
+            loadData();
+          }}
+        />
       )}
     </div>
   );

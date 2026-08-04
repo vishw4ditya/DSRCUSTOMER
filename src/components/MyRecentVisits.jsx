@@ -1,17 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
+import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
+import CustomerEditModal from './CustomerEditModal';
 
 export default function MyRecentVisits({ refreshKey }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingRecord, setEditingRecord] = useState(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    return api
+      .get('/customers/mine')
+      .then((res) => setRecords(sortDueTodayFirst(res.data)))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
-    setLoading(true);
-    api
-      .get('/customers/mine')
-      .then((res) => setRecords(res.data))
-      .finally(() => setLoading(false));
-  }, [refreshKey]);
+    load();
+  }, [load, refreshKey]);
 
   return (
     <div className="panel">
@@ -32,28 +39,48 @@ export default function MyRecentVisits({ refreshKey }) {
                 <th>Visit Date</th>
                 <th>Next Visit</th>
                 <th>Type</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {records.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={7}>No entries yet - add your first visit above.</td>
+                  <td colSpan={8}>No entries yet - add your first visit above.</td>
                 </tr>
               )}
               {records.map((r) => (
-                <tr key={r._id}>
+                <tr key={r._id} className={isDueToday(r.nextVisitDate) ? 'row-due-today' : ''}>
                   <td>{r.name}</td>
                   <td>{r.phone}</td>
                   <td style={{ maxWidth: 220 }}>{r.liveLocation?.address || '-'}</td>
                   <td>{r.productName}</td>
                   <td>{new Date(r.visitDate).toLocaleDateString()}</td>
-                  <td>{r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}</td>
+                  <td>
+                    {r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}
+                    {isDueToday(r.nextVisitDate) && <span className="due-today-badge">Due Today</span>}
+                  </td>
                   <td>{r.visitType || '-'}</td>
+                  <td>
+                    <button className="btn btn-outline btn-sm" onClick={() => setEditingRecord(r)}>
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {editingRecord && (
+        <CustomerEditModal
+          record={editingRecord}
+          onClose={() => setEditingRecord(null)}
+          onSaved={() => {
+            setEditingRecord(null);
+            load();
+          }}
+        />
       )}
     </div>
   );

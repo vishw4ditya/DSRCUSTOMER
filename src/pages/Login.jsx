@@ -6,7 +6,7 @@ import { DASHBOARD_PATH } from '../roles';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [userId, setUserId] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -16,7 +16,7 @@ export default function Login() {
     setError('');
     setSubmitting(true);
     try {
-      const user = await login(userId, password);
+      const user = await login(phone, password);
       navigate(DASHBOARD_PATH[user.role] || '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -33,14 +33,14 @@ export default function Login() {
           <div className="brand-name">DSR Customer Management System</div>
         </div>
         <h1>Welcome back</h1>
-        <p className="auth-subtitle">Log in with the UserID you received after registration.</p>
+        <p className="auth-subtitle">Log in with your registered phone number and password.</p>
 
         {error && <div className="alert alert-error">{error}</div>}
 
         <form className="form-grid" onSubmit={submit}>
           <div>
-            <label>UserID</label>
-            <input required placeholder="e.g. TC-0001" value={userId} onChange={(e) => setUserId(e.target.value)} />
+            <label>Phone Number</label>
+            <input required placeholder="e.g. 9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div>
             <label>Password</label>
@@ -52,7 +52,7 @@ export default function Login() {
         </form>
 
         <div className="auth-footer">
-          <Link to="/forgot-password">Forgot password?</Link>
+          <Link to="/forgot-password">Forgot password? (use your UserID)</Link>
           <span> &middot; </span>
           <Link to="/register">Create an account</Link>
           <br />

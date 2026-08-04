@@ -257,6 +257,23 @@ tbody tr:hover { background: var(--color-surface-alt); }
 .table-scroll { overflow-x: auto; }
 .empty-row td { text-align: center; color: var(--color-text-muted); padding: 26px; }
 
+tr.row-due-today { background: var(--color-danger-bg); }
+tr.row-due-today:hover { background: #fde2e2; }
+tr.row-due-today td { color: var(--color-danger); font-weight: 600; }
+.due-today-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--color-danger);
+  color: white;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
 .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
 .badge-pending { background: var(--color-warning-bg); color: var(--color-warning); }
 .badge-approved { background: var(--color-success-bg); color: var(--color-success); }

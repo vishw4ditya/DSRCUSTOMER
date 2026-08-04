@@ -31,8 +31,8 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = async (userId, password) => {
-    const res = await api.post('/auth/login', { userId, password });
+  const login = async (phone, password) => {
+    const res = await api.post('/auth/login', { phone, password });
     localStorage.setItem('token', res.data.token);
     // The login response's user object has raw zone/branch ObjectIds. Fetch the
     // populated profile (with zone/branch names) so dashboards can render immediately.
