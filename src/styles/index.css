@@ -298,16 +298,6 @@ tr.row-due-today td { color: var(--color-danger); font-weight: 600; }
 .radio-option { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; }
 .radio-option input { width: auto; }
 
-.otp-display {
-  background: var(--color-primary-light);
-  border: 1px dashed var(--color-primary);
-  border-radius: 10px;
-  padding: 14px;
-  text-align: center;
-  margin-bottom: 16px;
-}
-.otp-code { font-size: 26px; font-weight: 800; letter-spacing: 6px; color: var(--color-primary-dark); }
-
 .helper-text { font-size: 12.5px; color: var(--color-text-muted); margin-top: 4px; }
 
 .copyable-address {
