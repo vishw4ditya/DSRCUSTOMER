@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
 import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
 import CustomerEditModal from './CustomerEditModal';
+import CopyableAddress from './CopyableAddress';
 
 export default function MyRecentVisits({ refreshKey }) {
   const [records, setRecords] = useState([]);
@@ -52,7 +53,9 @@ export default function MyRecentVisits({ refreshKey }) {
                 <tr key={r._id} className={isDueToday(r.nextVisitDate) ? 'row-due-today' : ''}>
                   <td>{r.name}</td>
                   <td>{r.phone}</td>
-                  <td style={{ maxWidth: 220 }}>{r.liveLocation?.address || '-'}</td>
+                  <td style={{ maxWidth: 220 }}>
+                    <CopyableAddress address={r.liveLocation?.address} />
+                  </td>
                   <td>{r.productName}</td>
                   <td>{new Date(r.visitDate).toLocaleDateString()}</td>
                   <td>
