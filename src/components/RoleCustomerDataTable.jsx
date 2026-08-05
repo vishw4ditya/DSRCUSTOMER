@@ -42,19 +42,32 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     loadData();
   }, [loadData]);
 
-  const handleExport = async () => {
+  const buildExportParams = () => {
     const params = { addedByRole: role };
     Object.entries(filters).forEach(([k, v]) => {
       if (v) params[k] = v;
     });
-    const res = await api.get('/customers/export', { params, responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([res.data]));
+    return params;
+  };
+
+  const downloadBlob = (data, mimeType, filename) => {
+    const url = window.URL.createObjectURL(new Blob([data], { type: mimeType }));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${role.toLowerCase()}-data-${Date.now()}.csv`);
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
+  };
+
+  const handleExportCsv = async () => {
+    const res = await api.get('/customers/export', { params: buildExportParams(), responseType: 'blob' });
+    downloadBlob(res.data, 'text/csv', `${role.toLowerCase()}-data-${Date.now()}.csv`);
+  };
+
+  const handleExportPdf = async () => {
+    const res = await api.get('/customers/export/pdf', { params: buildExportParams(), responseType: 'blob' });
+    downloadBlob(res.data, 'application/pdf', `${role.toLowerCase()}-data-${Date.now()}.pdf`);
   };
 
   const handleDelete = async (id, name) => {
@@ -74,9 +87,14 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     <div>
       <div className="panel-header">
         <h2>{role} Visit Records</h2>
-        <button className="btn btn-primary btn-sm" onClick={handleExport}>
-          Download {role} CSV
-        </button>
+        <div className="action-group">
+          <button className="btn btn-outline btn-sm" onClick={handleExportCsv}>
+            Download CSV
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={handleExportPdf}>
+            Download PDF
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
