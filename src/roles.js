@@ -9,7 +9,7 @@ export const ROLES = {
 export const ROLE_LABELS = {
   [ROLES.SUPER_ADMIN]: 'Super Admin',
   [ROLES.REGIONAL_MANAGER]: 'Regional Manager',
-  [ROLES.BRANCH_HEAD]: 'Branch Head',
+  [ROLES.BRANCH_HEAD]: 'Branch Manager',
   [ROLES.TECHNICIAN]: 'Technician',
   [ROLES.SALESPERSON]: 'Salesperson',
 };

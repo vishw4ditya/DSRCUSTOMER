@@ -76,7 +76,7 @@ export default function Register() {
         </div>
         <h1>Create your account</h1>
         <p className="auth-subtitle">
-          Register as a Regional Manager, Branch Head, Technician, or Salesperson. Your account will need approval
+          Register as a Regional Manager, Branch Manager, Technician, or Salesperson. Your account will need approval
           before you can log in.
         </p>
 

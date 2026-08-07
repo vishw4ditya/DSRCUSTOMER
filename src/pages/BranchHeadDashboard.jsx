@@ -17,7 +17,7 @@ export default function BranchHeadDashboard() {
       <div className="main-content">
         <div className="page-header">
           <div>
-            <h1>Branch Head Dashboard</h1>
+            <h1>Branch Manager Dashboard</h1>
             <p>
               Branch: {user.branch?.name || 'N/A'} ({user.zone?.name || 'N/A'})
             </p>

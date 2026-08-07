@@ -114,7 +114,7 @@ export default function CustomerEntryForm({ onSaved }) {
 
         <div>
           <label>Live Location</label>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="button" className="btn btn-outline btn-sm" onClick={captureLocation} disabled={locating}>
               {locating ? 'Getting location...' : coords ? 'Location captured ✓' : 'Capture Current Location'}
             </button>
@@ -183,7 +183,7 @@ export default function CustomerEntryForm({ onSaved }) {
           </div>
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={saving}>
+        <button className="btn btn-primary btn-block" type="submit" disabled={saving}>
           {saving ? 'Saving...' : 'Save Visit Record'}
         </button>
       </form>

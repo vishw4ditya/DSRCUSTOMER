@@ -54,8 +54,7 @@ export default function HomePage() {
     <div className="home-shell">
       <div className="home-nav">
         <div className="brand">
-          <div className="brand-mark">DSR</div>
-          <div className="brand-name">DSR Customer Management System</div>
+          <img src="/logo.jpg" alt="Mahindra Zone Water Purifier" className="home-logo-img" />
         </div>
         <div className="home-nav-actions">
           {user ? (
@@ -76,21 +75,32 @@ export default function HomePage() {
       </div>
 
       <div className="home-hero">
-        <h1>DSR Customer Management System</h1>
-        <p>
-          Manage Zones, Branches, and your Regional Managers, Branch Heads, Technicians, and Salespersons — all
-          customer visit data in one place.
-        </p>
-        {!user && (
-          <div className="home-hero-actions">
-            <Link className="btn btn-primary" to="/register">
-              Create an Account
-            </Link>
-            <Link className="btn btn-outline" to="/login">
-              Log In
-            </Link>
+        <div className="home-hero-grid">
+          <div className="home-hero-text">
+            <h1>DSR Customer Management System</h1>
+            <p>
+              Manage Zones, Branches, and your Regional Managers, Branch Managers, Technicians, and Salespersons —
+              all customer visit data in one place.
+            </p>
+            {!user && (
+              <div className="home-hero-actions">
+                <Link className="btn btn-primary" to="/register">
+                  Create an Account
+                </Link>
+                <Link className="btn btn-outline" to="/login">
+                  Log In
+                </Link>
+              </div>
+            )}
           </div>
-        )}
+          <div className="home-hero-image-wrap">
+            <img
+              src="/hero-water-purifier.jpg"
+              alt="Mahindra Zone Water Purifier products"
+              className="home-hero-image"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="home-links-section">

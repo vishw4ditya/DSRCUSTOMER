@@ -4,7 +4,7 @@ import RoleCustomerDataTable from './RoleCustomerDataTable';
 
 // Technician and Salesperson data are kept as fully separate tabs/tables (separate
 // filters, separate CSV exports) rather than one mixed table, per request - Super
-// Admin, Regional Manager, and Branch Head dashboards all use this same panel.
+// Admin, Regional Manager, and Branch Manager dashboards all use this same panel.
 export default function CustomerDataPanel({ showZoneBranchFilters }) {
   const [tab, setTab] = useState('Technician');
   const [zones, setZones] = useState([]);
