@@ -38,7 +38,7 @@ export default function ForgotPassword() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="brand">
-          <div className="brand-mark">DSR</div>
+          <img src="/company-logo.jpg" alt="Karnali Krishna Purifier Pvt. Ltd." className="auth-logo" />
           <div className="brand-name">DSR Customer Management System</div>
         </div>
         <h1>Reset your password</h1>

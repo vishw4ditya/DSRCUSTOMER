@@ -14,7 +14,7 @@ export default function Navbar() {
   return (
     <div className="navbar">
       <div className="brand">
-        <div className="brand-mark">DSR</div>
+        <img src="/company-logo.jpg" alt="Karnali Krishna Purifier Pvt. Ltd." className="navbar-logo-img" />
         <div className="brand-name">DSR Customer Management System</div>
       </div>
       {user && (

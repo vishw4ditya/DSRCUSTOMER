@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { DASHBOARD_PATH } from '../roles';
+import HeroImageSlider from '../components/HeroImageSlider';
 
 // ---------------------------------------------------------------------------
 // EDIT ME: add/remove/change the cards below to link out to your other
@@ -94,11 +95,7 @@ export default function HomePage() {
             )}
           </div>
           <div className="home-hero-image-wrap">
-            <img
-              src="/hero-water-purifier.jpg"
-              alt="Mahindra Zone Water Purifier products"
-              className="home-hero-image"
-            />
+            <HeroImageSlider />
           </div>
         </div>
       </div>
