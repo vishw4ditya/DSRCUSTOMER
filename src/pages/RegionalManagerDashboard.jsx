@@ -18,8 +18,11 @@ export default function RegionalManagerDashboard() {
       <div className="main-content">
         <div className="page-header">
           <div>
-            <h1>Regional Manager Dashboard</h1>
-            <p>Zone: {user.zone?.name || 'N/A'}</p>
+            <p className="dashboard-kicker">Regional Manager Dashboard</p>
+            <h1 className="dashboard-welcome-name">{user.name}</h1>
+            <p className="dashboard-subtitle">
+              {user.userId} &middot; Zone: {user.zone?.name || 'N/A'}
+            </p>
           </div>
         </div>
 

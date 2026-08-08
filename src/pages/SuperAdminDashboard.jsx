@@ -3,11 +3,13 @@ import Navbar from '../components/Navbar';
 import UserManagementPanel from '../components/UserManagementPanel';
 import ZoneBranchPanel from '../components/ZoneBranchPanel';
 import CustomerDataPanel from '../components/CustomerDataPanel';
+import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../roles';
 
 const SECTIONS = ['Team & Approvals', 'Zones & Branches', 'Customer Data'];
 
 export default function SuperAdminDashboard() {
+  const { user } = useAuth();
   const [section, setSection] = useState(SECTIONS[0]);
 
   return (
@@ -16,8 +18,11 @@ export default function SuperAdminDashboard() {
       <div className="main-content">
         <div className="page-header">
           <div>
-            <h1>Super Admin Dashboard</h1>
-            <p>Full control over zones, branches, and every role's accounts and data.</p>
+            <p className="dashboard-kicker">Super Admin Dashboard</p>
+            <h1 className="dashboard-welcome-name">{user.name}</h1>
+            <p className="dashboard-subtitle">
+              {user.userId} &middot; Full control over zones, branches, and every role's accounts and data.
+            </p>
           </div>
         </div>
 

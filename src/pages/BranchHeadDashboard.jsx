@@ -17,9 +17,10 @@ export default function BranchHeadDashboard() {
       <div className="main-content">
         <div className="page-header">
           <div>
-            <h1>Branch Manager Dashboard</h1>
-            <p>
-              Branch: {user.branch?.name || 'N/A'} ({user.zone?.name || 'N/A'})
+            <p className="dashboard-kicker">Branch Manager Dashboard</p>
+            <h1 className="dashboard-welcome-name">{user.name}</h1>
+            <p className="dashboard-subtitle">
+              {user.userId} &middot; Branch: {user.branch?.name || 'N/A'} ({user.zone?.name || 'N/A'})
             </p>
           </div>
         </div>

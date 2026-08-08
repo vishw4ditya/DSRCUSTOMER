@@ -1,0 +1,9 @@
+{
+  "appId": "com.karnalikrishnapurifier.dsrcms",
+  "appName": "DSR Customer Management System",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

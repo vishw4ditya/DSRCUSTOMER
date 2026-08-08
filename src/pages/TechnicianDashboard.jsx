@@ -14,10 +14,11 @@ export default function TechnicianDashboard() {
       <div className="main-content">
         <div className="page-header">
           <div>
-            <h1>Technician Dashboard</h1>
-            <p>
-              {user.branch?.name || 'N/A'} ({user.zone?.name || 'N/A'}) &middot; Record installation and service
-              visits.
+            <p className="dashboard-kicker">Technician Dashboard</p>
+            <h1 className="dashboard-welcome-name">{user.name}</h1>
+            <p className="dashboard-subtitle">
+              {user.userId} &middot; {user.branch?.name || 'N/A'} ({user.zone?.name || 'N/A'}) &middot; Record
+              installation and service visits.
             </p>
           </div>
         </div>

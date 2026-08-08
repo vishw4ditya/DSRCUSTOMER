@@ -215,6 +215,23 @@ input:focus, select:focus, textarea:focus {
 .page-header h1 { font-size: 22px; margin: 0 0 4px; }
 .page-header p { margin: 0; color: var(--color-text-muted); font-size: 14px; }
 
+.dashboard-kicker {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+}
+.dashboard-welcome-name {
+  margin: 0 0 6px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+.dashboard-subtitle { margin: 0; color: var(--color-text-muted); font-size: 14px; }
+
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
 .stat-card {
   background: var(--color-surface);
@@ -525,6 +542,7 @@ tr.row-due-today td { color: var(--color-danger); font-weight: 600; }
   .main-content { padding: 18px 16px; }
 
   .page-header h1 { font-size: 19px; }
+  .dashboard-welcome-name { font-size: 22px; }
 
   .navbar {
     flex-wrap: wrap;
