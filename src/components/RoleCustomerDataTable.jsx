@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
 import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
+import { CUSTOMER_TYPES, customerTypeBadgeClass } from '../customerTypes';
 import CustomerEditModal from './CustomerEditModal';
 import CopyableAddress from './CopyableAddress';
 
@@ -15,6 +16,7 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     branch: '',
     productName: '',
     visitType: '',
+    customerType: '',
     dateFrom: '',
     dateTo: '',
     search: '',
@@ -82,6 +84,8 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
 
   const set = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
   const isTechnician = role === 'Technician';
+  const isSalesperson = role === 'Salesperson';
+  const extraColumnCount = isTechnician || isSalesperson ? 1 : 0;
 
   return (
     <div>
@@ -134,6 +138,19 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
             </select>
           </div>
         )}
+        {isSalesperson && (
+          <div className="filter-field">
+            <label>Customer Type</label>
+            <select value={filters.customerType} onChange={set('customerType')}>
+              <option value="">All</option>
+              {CUSTOMER_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="filter-field">
           <label>Product</label>
           <input placeholder="Product name" value={filters.productName} onChange={set('productName')} />
@@ -166,6 +183,7 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
                 <th>Visit Date</th>
                 <th>Next Visit</th>
                 {isTechnician && <th>Type</th>}
+                {isSalesperson && <th>Customer Type</th>}
                 <th>Added By</th>
                 <th>Zone / Branch</th>
                 <th>Action</th>
@@ -174,7 +192,7 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
             <tbody>
               {records.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={isTechnician ? 10 : 9}>No {role.toLowerCase()} records match these filters.</td>
+                  <td colSpan={9 + extraColumnCount}>No {role.toLowerCase()} records match these filters.</td>
                 </tr>
               )}
               {records.map((r) => (
@@ -191,6 +209,15 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
                     {isDueToday(r.nextVisitDate) && <span className="due-today-badge">Due Today</span>}
                   </td>
                   {isTechnician && <td>{r.visitType || '-'}</td>}
+                  {isSalesperson && (
+                    <td>
+                      {r.customerType ? (
+                        <span className={`badge ${customerTypeBadgeClass(r.customerType)}`}>{r.customerType}</span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                  )}
                   <td>
                     {r.addedBy?.name} <small>({r.addedBy?.userId})</small>
                   </td>

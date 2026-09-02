@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api/axios';
 import Modal from './Modal';
+import { CUSTOMER_TYPES } from '../customerTypes';
 
 // Converts an ISO date string to yyyy-mm-dd for an <input type="date">
 function toDateInputValue(value) {
@@ -10,6 +11,7 @@ function toDateInputValue(value) {
 
 export default function CustomerEditModal({ record, onClose, onSaved }) {
   const isTechnicianRecord = record.addedByRole === 'Technician';
+  const isSalespersonRecord = record.addedByRole === 'Salesperson';
   const [form, setForm] = useState({
     name: record.name || '',
     phone: record.phone || '',
@@ -18,6 +20,7 @@ export default function CustomerEditModal({ record, onClose, onSaved }) {
     visitDate: toDateInputValue(record.visitDate),
     nextVisitDate: toDateInputValue(record.nextVisitDate),
     visitType: record.visitType || 'Installation',
+    customerType: record.customerType || 'Warm',
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -37,6 +40,7 @@ export default function CustomerEditModal({ record, onClose, onSaved }) {
         visitDate: form.visitDate,
         nextVisitDate: form.nextVisitDate || null,
         visitType: isTechnicianRecord ? form.visitType : undefined,
+        customerType: isSalespersonRecord ? form.customerType : undefined,
       });
       onSaved();
     } catch (err) {
@@ -96,6 +100,25 @@ export default function CustomerEditModal({ record, onClose, onSaved }) {
                   />
                   Service
                 </label>
+              </div>
+            </div>
+          )}
+          {isSalespersonRecord && (
+            <div>
+              <label>Customer Type</label>
+              <div className="radio-group">
+                {CUSTOMER_TYPES.map((t) => (
+                  <label className="radio-option" key={t}>
+                    <input
+                      type="radio"
+                      name="editCustomerType"
+                      value={t}
+                      checked={form.customerType === t}
+                      onChange={set('customerType')}
+                    />
+                    {t}
+                  </label>
+                ))}
               </div>
             </div>
           )}

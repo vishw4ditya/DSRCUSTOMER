@@ -314,6 +314,11 @@ tr.row-due-today td { color: var(--color-danger); font-weight: 600; }
 .badge-role { background: var(--color-primary-light); color: var(--color-primary-dark); }
 .badge-inactive { background: #f1f2f6; color: #6b7280; }
 
+/* Customer type (lead temperature) badges */
+.badge-hot { background: #fee2e2; color: #b91c1c; }
+.badge-cold { background: #e0f2fe; color: #075985; }
+.badge-warm { background: #fef9c3; color: #854d0e; }
+
 .action-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .modal-backdrop {

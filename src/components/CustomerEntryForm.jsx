@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { CUSTOMER_TYPES } from '../customerTypes';
 
 const emptyForm = {
   name: '',
@@ -10,11 +11,13 @@ const emptyForm = {
   visitDate: '',
   nextVisitDate: '',
   visitType: 'Installation',
+  customerType: 'Warm',
 };
 
 export default function CustomerEntryForm({ onSaved }) {
   const { user } = useAuth();
   const isTechnician = user?.role === 'Technician';
+  const isSalesperson = user?.role === 'Salesperson';
   const [form, setForm] = useState(emptyForm);
   const [coords, setCoords] = useState(null);
   const [locating, setLocating] = useState(false);
@@ -80,6 +83,7 @@ export default function CustomerEntryForm({ onSaved }) {
         visitDate: form.visitDate,
         nextVisitDate: form.nextVisitDate || null,
         visitType: isTechnician ? form.visitType : undefined,
+        customerType: isSalesperson ? form.customerType : undefined,
       });
       setSuccess('Customer visit recorded successfully');
       setForm(emptyForm);
@@ -167,6 +171,25 @@ export default function CustomerEntryForm({ onSaved }) {
                   />
                   Service
                 </label>
+              </div>
+            </div>
+          )}
+          {isSalesperson && (
+            <div>
+              <label>Customer Type</label>
+              <div className="radio-group">
+                {CUSTOMER_TYPES.map((t) => (
+                  <label className="radio-option" key={t}>
+                    <input
+                      type="radio"
+                      name="customerType"
+                      value={t}
+                      checked={form.customerType === t}
+                      onChange={set('customerType')}
+                    />
+                    {t}
+                  </label>
+                ))}
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
 import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
+import { customerTypeBadgeClass } from '../customerTypes';
 import CustomerEditModal from './CustomerEditModal';
 import CopyableAddress from './CopyableAddress';
 
@@ -62,7 +63,13 @@ export default function MyRecentVisits({ refreshKey }) {
                     {r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}
                     {isDueToday(r.nextVisitDate) && <span className="due-today-badge">Due Today</span>}
                   </td>
-                  <td>{r.visitType || '-'}</td>
+                  <td>
+                    {r.addedByRole === 'Salesperson' && r.customerType ? (
+                      <span className={`badge ${customerTypeBadgeClass(r.customerType)}`}>{r.customerType}</span>
+                    ) : (
+                      r.visitType || '-'
+                    )}
+                  </td>
                   <td>
                     <button className="btn btn-outline btn-sm" onClick={() => setEditingRecord(r)}>
                       Edit
