@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { getZones, getBranches } from '../services/firebase';
 import RoleCustomerDataTable from './RoleCustomerDataTable';
 
-// Technician and Salesperson data are kept as fully separate tabs/tables (separate
-// filters, separate CSV exports) rather than one mixed table, per request - Super
-// Admin, Regional Manager, and Branch Manager dashboards all use this same panel.
 export default function CustomerDataPanel({ showZoneBranchFilters }) {
   const [tab, setTab] = useState('Technician');
   const [zones, setZones] = useState([]);
@@ -12,9 +9,9 @@ export default function CustomerDataPanel({ showZoneBranchFilters }) {
 
   useEffect(() => {
     if (showZoneBranchFilters) {
-      api.get('/zones').then((res) => setZones(res.data));
+      getZones().then((data) => setZones(data || [])).catch(() => setZones([]));
     }
-    api.get('/branches').then((res) => setBranches(res.data));
+    getBranches().then((data) => setBranches(data || [])).catch(() => setBranches([]));
   }, [showZoneBranchFilters]);
 
   return (
@@ -32,8 +29,6 @@ export default function CustomerDataPanel({ showZoneBranchFilters }) {
         </button>
       </div>
 
-      {/* Both tables stay mounted (just hidden) so each keeps its own filters/data
-          when you switch tabs back and forth, instead of refetching every time. */}
       <div style={{ display: tab === 'Technician' ? 'block' : 'none' }}>
         <RoleCustomerDataTable role="Technician" showZoneBranchFilters={showZoneBranchFilters} zones={zones} branches={branches} />
       </div>

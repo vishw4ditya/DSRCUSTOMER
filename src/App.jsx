@@ -1,11 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './components/layouts/DashboardLayout';
 import { ROLES } from './roles';
 
+import HomePage from './pages/HomePage';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
-import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import RegionalManagerDashboard from './pages/RegionalManagerDashboard';
@@ -16,11 +17,25 @@ import SalespersonDashboard from './pages/SalespersonDashboard';
 export default function App() {
   return (
     <Routes>
+      {/* Public Home Page */}
       <Route path="/" element={<HomePage />} />
+
+      {/* Main Role-Based Dashboard */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Auth Routes */}
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
+      {/* Protected Profile Route */}
       <Route
         path="/profile"
         element={
@@ -30,6 +45,7 @@ export default function App() {
         }
       />
 
+      {/* Specific Role Dashboard Routes */}
       <Route
         path="/super-admin"
         element={
@@ -71,7 +87,8 @@ export default function App() {
         }
       />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Fallback route */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

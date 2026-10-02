@@ -1,25 +1,50 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { DASHBOARD_PATH } from '../roles';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // If already authenticated, redirect to dashboard automatically
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const from = location.state?.from?.pathname || DASHBOARD_PATH[user.role] || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location]);
+
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) {
+      setError('Please enter your phone number.');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const user = await login(phone, password);
-      navigate(DASHBOARD_PATH[user.role] || '/');
+      const loggedUser = await login(trimmedPhone, password);
+      if (loggedUser && loggedUser.role) {
+        const dest = DASHBOARD_PATH[loggedUser.role] || '/dashboard';
+        navigate(dest, { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.message || 'Invalid phone number or password.');
     } finally {
       setSubmitting(false);
     }
@@ -33,21 +58,37 @@ export default function Login() {
           <div className="brand-name">DSR Customer Management System</div>
         </div>
         <h1>Welcome back</h1>
-        <p className="auth-subtitle">Log in with your registered phone number and password.</p>
+        <p className="auth-subtitle">Sign in with your registered phone number and password.</p>
 
         {error && <div className="alert alert-error">{error}</div>}
 
         <form className="form-grid" onSubmit={submit}>
           <div>
             <label>Phone Number</label>
-            <input required placeholder="e.g. 9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input
+              required
+              type="text"
+              placeholder="e.g. +91 9876543210 or +977 98XXXXXXXX"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={submitting}
+              autoComplete="username"
+            />
           </div>
           <div>
             <label>Password</label>
-            <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              required
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={submitting}
+              autoComplete="current-password"
+            />
           </div>
           <button className="btn btn-primary btn-block" type="submit" disabled={submitting}>
-            {submitting ? 'Logging in...' : 'Log In'}
+            {submitting ? 'Authenticating...' : 'Log In'}
           </button>
         </form>
 

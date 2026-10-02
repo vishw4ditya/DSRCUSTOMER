@@ -1,0 +1,108 @@
+[debug] [2026-09-27T15:18:40.456Z] ----------------------------------------------------------------------
+[debug] [2026-09-27T15:18:40.466Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:list
+[debug] [2026-09-27T15:18:40.467Z] CLI Version:   15.2.1
+[debug] [2026-09-27T15:18:40.468Z] Platform:      win32
+[debug] [2026-09-27T15:18:40.468Z] Node Version:  v22.13.1
+[debug] [2026-09-27T15:18:40.470Z] Time:          Sun Sep 27 2026 20:48:40 GMT+0530 (India Standard Time)
+[debug] [2026-09-27T15:18:40.470Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-27T15:18:40.478Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-09-27T15:18:40.735Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-27T15:18:40.843Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:28:19)
+    at async Object.requireAuth [as fn] (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:90:20)
+    at async C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:261:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-09-27T15:28:50.159Z] ----------------------------------------------------------------------
+[debug] [2026-09-27T15:28:50.169Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:list
+[debug] [2026-09-27T15:28:50.170Z] CLI Version:   15.2.1
+[debug] [2026-09-27T15:28:50.170Z] Platform:      win32
+[debug] [2026-09-27T15:28:50.171Z] Node Version:  v22.13.1
+[debug] [2026-09-27T15:28:50.172Z] Time:          Sun Sep 27 2026 20:58:50 GMT+0530 (India Standard Time)
+[debug] [2026-09-27T15:28:50.172Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-27T15:28:50.178Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-09-27T15:28:50.385Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-27T15:28:50.463Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:28:19)
+    at async Object.requireAuth [as fn] (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:90:20)
+    at async C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:261:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-09-27T15:29:10.253Z] ----------------------------------------------------------------------
+[debug] [2026-09-27T15:29:10.261Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project dsr-customer-mgmt
+[debug] [2026-09-27T15:29:10.262Z] CLI Version:   15.2.1
+[debug] [2026-09-27T15:29:10.263Z] Platform:      win32
+[debug] [2026-09-27T15:29:10.264Z] Node Version:  v22.13.1
+[debug] [2026-09-27T15:29:10.265Z] Time:          Sun Sep 27 2026 20:59:10 GMT+0530 (India Standard Time)
+[debug] [2026-09-27T15:29:10.266Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-27T15:29:10.272Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-09-27T15:29:31.236Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-27T15:29:31.279Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:28:19)
+    at async requireAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:90:20)
+    at async requirePermissions (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requirePermissions.js:17:5)
+    at async C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:261:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-09-27T15:30:10.263Z] ----------------------------------------------------------------------
+[debug] [2026-09-27T15:30:10.270Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project dsr-customer-mgmt
+[debug] [2026-09-27T15:30:10.271Z] CLI Version:   15.2.1
+[debug] [2026-09-27T15:30:10.272Z] Platform:      win32
+[debug] [2026-09-27T15:30:10.272Z] Node Version:  v22.13.1
+[debug] [2026-09-27T15:30:10.273Z] Time:          Sun Sep 27 2026 21:00:10 GMT+0530 (India Standard Time)
+[debug] [2026-09-27T15:30:10.273Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-27T15:30:10.278Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-09-27T15:30:15.710Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-27T15:30:15.758Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:28:19)
+    at async requireAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:90:20)
+    at async requirePermissions (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requirePermissions.js:17:5)
+    at async C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:261:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-09-27T15:33:36.165Z] ----------------------------------------------------------------------
+[debug] [2026-09-27T15:33:36.171Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project dsr-customer-mgmt
+[debug] [2026-09-27T15:33:36.172Z] CLI Version:   15.2.1
+[debug] [2026-09-27T15:33:36.172Z] Platform:      win32
+[debug] [2026-09-27T15:33:36.173Z] Node Version:  v22.13.1
+[debug] [2026-09-27T15:33:36.173Z] Time:          Sun Sep 27 2026 21:03:36 GMT+0530 (India Standard Time)
+[debug] [2026-09-27T15:33:36.173Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-27T15:33:36.179Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-09-27T15:33:41.244Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-27T15:33:41.404Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:28:19)
+    at async requireAuth (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requireAuth.js:90:20)
+    at async requirePermissions (C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\requirePermissions.js:17:5)
+    at async C:\Users\adity\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:261:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?

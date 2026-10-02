@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { CUSTOMER_TYPES } from '../customerTypes';
+import { addCustomer, addVisit } from '../services/firebase';
 
 const emptyForm = {
   name: '',
   phone: '',
   address: '',
   productName: '',
-  visitDate: '',
+  visitDate: new Date().toISOString().split('T')[0],
   nextVisitDate: '',
   visitType: 'Installation',
   customerType: 'Warm',
@@ -39,9 +38,6 @@ export default function CustomerEntryForm({ onSaved }) {
         const { latitude, longitude } = pos.coords;
         setCoords({ latitude, longitude });
         try {
-          // Reverse-geocode the coordinates into a full postal address so the
-          // field isn't left with just a pin - this pre-fills, but the user
-          // can still edit/correct it before saving.
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
             { headers: { Accept: 'application/json' } }
@@ -51,7 +47,7 @@ export default function CustomerEntryForm({ onSaved }) {
             setForm((f) => ({ ...f, address: data.display_name }));
           }
         } catch {
-          // Reverse geocoding is best-effort only - if it fails, the user just types the address manually
+          // Reverse geocoding best-effort fallback
         } finally {
           setLocating(false);
         }
@@ -73,24 +69,47 @@ export default function CustomerEntryForm({ onSaved }) {
     }
     setSaving(true);
     try {
-      await api.post('/customers', {
-        name: form.name,
-        phone: form.phone,
-        address: form.address,
+      const visitRecord = {
+        customer: form.name.trim(),
+        customerName: form.name.trim(),
+        phone: form.phone.trim(),
+        location: form.address.trim(),
+        address: form.address.trim(),
+        detailedAddress: form.address.trim(),
         latitude: coords?.latitude ?? null,
         longitude: coords?.longitude ?? null,
-        productName: form.productName,
-        visitDate: form.visitDate,
+        productName: form.productName.trim(),
+        date: form.visitDate || new Date().toISOString().split('T')[0],
+        visitDate: form.visitDate || new Date().toISOString().split('T')[0],
         nextVisitDate: form.nextVisitDate || null,
-        visitType: isTechnician ? form.visitType : undefined,
-        customerType: isSalesperson ? form.customerType : undefined,
-      });
-      setSuccess('Customer visit recorded successfully');
-      setForm(emptyForm);
+        visitType: isTechnician ? form.visitType : (isSalesperson ? 'Sales Demo' : 'General Visit'),
+        customerType: isSalesperson ? form.customerType : 'Warm',
+        leadTemperature: isSalesperson ? form.customerType : 'Warm',
+        addedByUserId: user?.uid || null,
+        salespersonId: isSalesperson ? user?.uid || null : null,
+        technicianId: isTechnician ? user?.uid || null : null,
+        createdBy: user?.uid || null,
+        createdByRole: user?.role || 'Technician',
+        zoneId: user?.zoneId || null,
+        branchId: user?.branchId || null,
+        salesperson: user?.name || 'Field Staff',
+        salespersonRole: user?.role || 'Technician',
+        addedByRole: user?.role || 'Technician',
+        status: 'Completed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await addCustomer(visitRecord);
+      await addVisit(visitRecord);
+
+      setSuccess('Customer visit recorded successfully!');
+      setForm({ ...emptyForm, visitDate: new Date().toISOString().split('T')[0] });
       setCoords(null);
       if (onSaved) onSaved();
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not save this record');
+      console.error('[CustomerEntryForm] Submit error:', err);
+      setError(err.message || 'Could not save this record');
     } finally {
       setSaving(false);
     }
@@ -99,7 +118,7 @@ export default function CustomerEntryForm({ onSaved }) {
   return (
     <div className="panel">
       <div className="panel-header">
-        <h2>Add Customer Visit</h2>
+        <h2>Add Customer Visit ({isTechnician ? 'Technician' : 'Salesperson'})</h2>
       </div>
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
@@ -108,106 +127,113 @@ export default function CustomerEntryForm({ onSaved }) {
         <div className="form-row-2">
           <div>
             <label>Customer Name</label>
-            <input required value={form.name} onChange={set('name')} />
+            <input required value={form.name} onChange={set('name')} disabled={saving} placeholder="Customer Name" />
           </div>
           <div>
-            <label>Phone</label>
-            <input required value={form.phone} onChange={set('phone')} />
+            <label>Phone Number</label>
+            <input required value={form.phone} onChange={set('phone')} disabled={saving} placeholder="Phone Number(s)" />
           </div>
         </div>
 
         <div>
-          <label>Live Location</label>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="btn btn-outline btn-sm" onClick={captureLocation} disabled={locating}>
-              {locating ? 'Getting location...' : coords ? 'Location captured ✓' : 'Capture Current Location'}
-            </button>
-            {coords && (
-              <span className="helper-text">
-                {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
-              </span>
-            )}
-          </div>
           <label>Detailed Address</label>
-          <textarea
-            required
-            rows={3}
-            placeholder="House/flat no., street, area, landmark, city, state, PIN code"
-            value={form.address}
-            onChange={set('address')}
-          />
-          <p className="helper-text">
-            Tap "Capture Current Location" to auto-fill this from GPS, then edit it so it's a complete, accurate
-            address (not just a pin).
-          </p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input required value={form.address} onChange={set('address')} disabled={saving} placeholder="Detailed Address" style={{ flex: 1 }} />
+            <button type="button" className="btn btn-outline btn-sm" onClick={captureLocation} disabled={locating || saving}>
+              {locating ? 'Locating...' : 'GPS Capture'}
+            </button>
+          </div>
         </div>
 
         <div className="form-row-2">
           <div>
             <label>Product Name</label>
-            <input required value={form.productName} onChange={set('productName')} />
+            <input required value={form.productName} onChange={set('productName')} disabled={saving} placeholder="Product Name" />
           </div>
-          {isTechnician && (
+          <div>
+            <label>Visit Date</label>
+            <input required type="date" value={form.visitDate} onChange={set('visitDate')} disabled={saving} />
+          </div>
+        </div>
+
+        <div className="form-row-2">
+          {isTechnician ? (
             <div>
-              <label>Visit Type</label>
-              <div className="radio-group">
-                <label className="radio-option">
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Visit Type</label>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingTop: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                   <input
                     type="radio"
-                    name="visitType"
+                    name="entryVisitType"
                     value="Installation"
                     checked={form.visitType === 'Installation'}
-                    onChange={set('visitType')}
+                    onChange={() => setForm((f) => ({ ...f, visitType: 'Installation' }))}
+                    disabled={saving}
                   />
                   Installation
                 </label>
-                <label className="radio-option">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                   <input
                     type="radio"
-                    name="visitType"
+                    name="entryVisitType"
                     value="Service"
                     checked={form.visitType === 'Service'}
-                    onChange={set('visitType')}
+                    onChange={() => setForm((f) => ({ ...f, visitType: 'Service' }))}
+                    disabled={saving}
                   />
                   Service
                 </label>
               </div>
             </div>
-          )}
-          {isSalesperson && (
+          ) : (
             <div>
-              <label>Customer Type</label>
-              <div className="radio-group">
-                {CUSTOMER_TYPES.map((t) => (
-                  <label className="radio-option" key={t}>
-                    <input
-                      type="radio"
-                      name="customerType"
-                      value={t}
-                      checked={form.customerType === t}
-                      onChange={set('customerType')}
-                    />
-                    {t}
-                  </label>
-                ))}
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Customer Type</label>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingTop: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="entryCustomerType"
+                    value="Hot"
+                    checked={form.customerType === 'Hot'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Hot' }))}
+                    disabled={saving}
+                  />
+                  Hot
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="entryCustomerType"
+                    value="Cold"
+                    checked={form.customerType === 'Cold'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Cold' }))}
+                    disabled={saving}
+                  />
+                  Cold
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="entryCustomerType"
+                    value="Warm"
+                    checked={form.customerType === 'Warm'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Warm' }))}
+                    disabled={saving}
+                  />
+                  Warm
+                </label>
               </div>
             </div>
           )}
-        </div>
 
-        <div className="form-row-2">
-          <div>
-            <label>Visit Date</label>
-            <input required type="date" value={form.visitDate} onChange={set('visitDate')} />
-          </div>
           <div>
             <label>Next Visit Date</label>
-            <input type="date" value={form.nextVisitDate} onChange={set('nextVisitDate')} />
+            <input required type="date" value={form.nextVisitDate} onChange={set('nextVisitDate')} disabled={saving} />
           </div>
         </div>
 
-        <button className="btn btn-primary btn-block" type="submit" disabled={saving}>
-          {saving ? 'Saving...' : 'Save Visit Record'}
+        <button className="btn btn-primary" type="submit" disabled={saving}>
+          {saving ? 'Recording visit...' : 'Record Visit'}
         </button>
       </form>
     </div>

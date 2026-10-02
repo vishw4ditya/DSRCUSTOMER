@@ -1,0 +1,154 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserData().role == 'SuperAdmin' && getUserData().status == 'active';
+    }
+    
+    function isRegionalManager() {
+      return isAuthenticated() && getUserData().role == 'RegionalManager' && getUserData().status == 'active';
+    }
+
+    function isBranchHead() {
+      return isAuthenticated() && getUserData().role == 'BranchHead' && getUserData().status == 'active';
+    }
+
+    function getUserZoneId() {
+      return getUserData().zoneId;
+    }
+
+    function getUserBranchId() {
+      return getUserData().branchId;
+    }
+    
+    function isActiveUser() {
+      return isAuthenticated() && getUserData().status == 'active';
+    }
+
+    // Phone Index Collection (Public mapping for Phone + Password Login)
+    match /phoneIndex/{phoneDoc} {
+      allow read, write: if true;
+    }
+
+    // User ID Index Collection (Public mapping for User ID)
+    match /userIdIndex/{userId} {
+      allow read, write: if true;
+    }
+
+    // Counters Collection (Public atomic counter increment for User ID generation)
+    match /counters/{counterId} {
+      allow read, write: if true;
+    }
+
+    // Password Reset Sessions Collection
+    match /resetSessions/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // Role-Specific Separate Collections
+    match /superAdmins/{docId} {
+      allow read, write: if true;
+    }
+    match /regionalManagers/{docId} {
+      allow read, write: if true;
+    }
+    match /branchHeads/{docId} {
+      allow read, write: if true;
+    }
+    match /technicians/{docId} {
+      allow read, write: if true;
+    }
+    match /salespersons/{docId} {
+      allow read, write: if true;
+    }
+
+    // Users Collection Security Rules
+    match /users/{userId} {
+      allow read: if true;
+
+      // Allow self creation on public registration (must not be SuperAdmin)
+      allow create: if isAuthenticated() 
+                    && request.auth.uid == userId 
+                    && request.resource.data.role != 'SuperAdmin';
+
+      // SuperAdmin can create/update/delete any user document
+      allow create, update, delete: if isSuperAdmin();
+
+      // RegionalManager can ONLY create/update users inside their assigned zone
+      allow create: if isRegionalManager() 
+                    && request.resource.data.zoneId == getUserZoneId()
+                    && request.resource.data.role != 'SuperAdmin' 
+                    && request.resource.data.role != 'RegionalManager';
+
+      allow update: if isRegionalManager() 
+                    && resource.data.zoneId == getUserZoneId()
+                    && request.resource.data.zoneId == getUserZoneId()
+                    && request.resource.data.role != 'SuperAdmin' 
+                    && request.resource.data.role != 'RegionalManager';
+
+      // BranchHead can ONLY create/update Salesperson or Technician inside their assigned branch
+      allow create: if isBranchHead() 
+                    && request.resource.data.zoneId == getUserZoneId()
+                    && request.resource.data.branchId == getUserBranchId()
+                    && (request.resource.data.role == 'Salesperson' || request.resource.data.role == 'Technician');
+
+      allow update: if isBranchHead() 
+                    && resource.data.branchId == getUserBranchId()
+                    && request.resource.data.branchId == getUserBranchId()
+                    && (request.resource.data.role == 'Salesperson' || request.resource.data.role == 'Technician');
+      
+      // Self profile update (name, phone) only
+      allow update: if isAuthenticated() 
+                    && request.auth.uid == userId 
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'zoneId', 'branchId']);
+    }
+
+    // Zones Collection - Public read allowed for active zones metadata during registration
+    match /zones/{zoneId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // Branches Collection - Public read allowed for active branches metadata during registration
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+      allow create, update: if isRegionalManager() && request.resource.data.zoneId == getUserZoneId();
+    }
+
+    // Customers Collection
+    match /customers/{customerId} {
+      allow read, write: if isActiveUser();
+    }
+
+    // Visits Collection
+    match /visits/{visitId} {
+      allow read, write: if isActiveUser();
+    }
+
+    // Leads Collection
+    match /leads/{leadId} {
+      allow read, write: if isActiveUser();
+    }
+
+    // Follow-ups Collection
+    match /followUps/{followUpId} {
+      allow read, write: if isActiveUser();
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      allow read, write: if isActiveUser();
+    }
+  }
+}

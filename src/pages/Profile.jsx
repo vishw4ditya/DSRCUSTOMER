@@ -1,12 +1,20 @@
 import { useState } from 'react';
+import { updatePassword } from 'firebase/auth';
 import Navbar from '../components/Navbar';
-import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { updateUserProfile } from '../services/firebase/users';
+import { auth } from '../services/firebase/config';
 import { ROLE_LABELS } from '../roles';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
-  const [form, setForm] = useState({ name: user.name, phone: user.phone, email: user.email, password: '', confirmPassword: '' });
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
+    password: '',
+    confirmPassword: '',
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [saving, setSaving] = useState(false);
@@ -19,20 +27,36 @@ export default function Profile() {
     setSuccess('');
 
     if (form.password && form.password !== form.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
+      return;
+    }
+    if (form.password && form.password.length < 8) {
+      setError('Password must contain at least 8 characters.');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = { name: form.name, phone: form.phone, email: form.email };
-      if (form.password) payload.password = form.password;
-      await api.put('/users/me', payload);
-      await refreshUser();
+      if (user?.uid) {
+        await updateUserProfile(user.uid, {
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+        });
+      }
+
+      if (form.password && auth?.currentUser) {
+        await updatePassword(auth.currentUser, form.password);
+      }
+
+      if (refreshUser) {
+        await refreshUser();
+      }
+
       setSuccess('Profile updated successfully');
       setForm((f) => ({ ...f, password: '', confirmPassword: '' }));
     } catch (err) {
-      setError(err.response?.data?.message || 'Update failed');
+      setError(err.message || 'Profile update failed');
     } finally {
       setSaving(false);
     }
@@ -46,7 +70,7 @@ export default function Profile() {
           <div>
             <h1>My Profile</h1>
             <p>
-              {user.userId} &middot; {ROLE_LABELS[user.role] || user.role}
+              <strong>User ID: {user?.userId || 'N/A'}</strong> &middot; Role: {ROLE_LABELS[user?.role] || user?.role} &middot; Phone: {user?.phone || 'N/A'}
             </p>
           </div>
         </div>
@@ -58,24 +82,24 @@ export default function Profile() {
           <form className="form-grid" onSubmit={submit}>
             <div>
               <label>Full Name</label>
-              <input required value={form.name} onChange={set('name')} />
+              <input required value={form.name} onChange={set('name')} disabled={saving} />
             </div>
             <div>
-              <label>Phone</label>
-              <input required value={form.phone} onChange={set('phone')} />
+              <label>Phone Number</label>
+              <input required value={form.phone} onChange={set('phone')} disabled={saving} />
             </div>
             <div>
-              <label>Email</label>
-              <input required type="email" value={form.email} onChange={set('email')} />
+              <label>Email Address</label>
+              <input required type="email" value={form.email} onChange={set('email')} disabled={saving} />
             </div>
             <div className="form-row-2">
               <div>
                 <label>New Password (optional)</label>
-                <input type="password" value={form.password} onChange={set('password')} />
+                <input type="password" value={form.password} onChange={set('password')} disabled={saving} />
               </div>
               <div>
                 <label>Confirm New Password</label>
-                <input type="password" value={form.confirmPassword} onChange={set('confirmPassword')} />
+                <input type="password" value={form.confirmPassword} onChange={set('confirmPassword')} disabled={saving} />
               </div>
             </div>
             <button className="btn btn-primary" type="submit" disabled={saving}>

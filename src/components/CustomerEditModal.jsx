@@ -1,27 +1,70 @@
 import { useState } from 'react';
-import api from '../api/axios';
 import Modal from './Modal';
-import { CUSTOMER_TYPES } from '../customerTypes';
+import { updateCustomer, updateVisit } from '../services/firebase';
+import { useAuth } from '../context/AuthContext';
 
-// Converts an ISO date string to yyyy-mm-dd for an <input type="date">
 function toDateInputValue(value) {
   if (!value) return '';
-  return new Date(value).toISOString().slice(0, 10);
+  if (typeof value === 'string') {
+    if (value.includes('T')) return value.split('T')[0];
+    if (value.length >= 10 && value.includes('-')) return value.slice(0, 10);
+  }
+  if (value?.toDate && typeof value.toDate === 'function') {
+    const d = value.toDate();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  } catch {
+    return '';
+  }
 }
 
-export default function CustomerEditModal({ record, onClose, onSaved }) {
-  const isTechnicianRecord = record.addedByRole === 'Technician';
-  const isSalespersonRecord = record.addedByRole === 'Salesperson';
+export default function CustomerEditModal({ record = {}, onClose, onSaved }) {
+  const { user } = useAuth();
+  const recId = record.id || record._id;
+
+  // Determine if this is a Technician-created record vs Salesperson-created record
+  const isTechnicianRecord =
+    record.addedByRole === 'Technician' ||
+    record.createdByRole === 'Technician' ||
+    record.salespersonRole === 'Technician' ||
+    Boolean(record.technicianId) ||
+    Boolean(record.visitType && !record.customerType);
+
+  // Role-based authorization check
+  const isAuthorized =
+    user?.role === 'SuperAdmin' ||
+    user?.role === 'RegionalManager' ||
+    user?.role === 'BranchHead' ||
+    record.addedByUserId === user?.uid ||
+    record.createdBy === user?.uid ||
+    record.technicianId === user?.uid ||
+    record.salespersonId === user?.uid ||
+    (user?.branchId && record.branchId === user?.branchId);
+
+  const initialCustomerType = record.customerType || record.leadTemperature || record.temperature || 'Warm';
+  const initialVisitType = record.visitType || record.serviceType || 'Installation';
+
   const [form, setForm] = useState({
-    name: record.name || '',
+    name: record.customerName || record.customer || record.name || '',
     phone: record.phone || '',
-    address: record.liveLocation?.address || '',
+    address: record.detailedAddress || record.location || record.address || record.liveLocation?.address || '',
     productName: record.productName || '',
-    visitDate: toDateInputValue(record.visitDate),
+    visitType: initialVisitType,
+    customerType: initialCustomerType,
+    visitDate: toDateInputValue(record.visitDate || record.date),
     nextVisitDate: toDateInputValue(record.nextVisitDate),
-    visitType: record.visitType || 'Installation',
-    customerType: record.customerType || 'Warm',
   });
+
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -29,117 +72,208 @@ export default function CustomerEditModal({ record, onClose, onSaved }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!isAuthorized) {
+      setError('You are not authorized to edit this customer record.');
+      return;
+    }
     setError('');
     setSaving(true);
+
     try {
-      await api.put(`/customers/${record._id}`, {
-        name: form.name,
-        phone: form.phone,
-        address: form.address,
-        productName: form.productName,
-        visitDate: form.visitDate,
+      const updatedFields = {
+        customer: form.name.trim(),
+        customerName: form.name.trim(),
+        phone: form.phone.trim(),
+        location: form.address.trim(),
+        address: form.address.trim(),
+        detailedAddress: form.address.trim(),
+        productName: form.productName.trim(),
+        date: form.visitDate || new Date().toISOString().split('T')[0],
+        visitDate: form.visitDate || new Date().toISOString().split('T')[0],
         nextVisitDate: form.nextVisitDate || null,
-        visitType: isTechnicianRecord ? form.visitType : undefined,
-        customerType: isSalespersonRecord ? form.customerType : undefined,
-      });
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (isTechnicianRecord) {
+        updatedFields.visitType = form.visitType;
+      } else {
+        updatedFields.customerType = form.customerType;
+        updatedFields.leadTemperature = form.customerType;
+      }
+
+      await updateCustomer(recId, updatedFields);
+      try {
+        await updateVisit(recId, updatedFields);
+      } catch {
+        // Best-effort update if separate visits doc exists
+      }
+
       onSaved();
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not save changes');
+      console.error('[CustomerEditModal] Update error:', err);
+      setError(err.message || 'Could not save changes');
     } finally {
       setSaving(false);
     }
   };
 
+  const currentTypeNormalized = (form.customerType || '').toLowerCase();
+  const currentVisitTypeNormalized = (form.visitType || '').toLowerCase();
+
   return (
-    <Modal title="Edit Customer Visit" onClose={onClose}>
+    <Modal title={`Edit Customer Visit (${isTechnicianRecord ? 'Technician' : 'Salesperson'})`} onClose={onClose}>
       <form className="form-grid" onSubmit={submit}>
         {error && <div className="alert alert-error">{error}</div>}
+        {!isAuthorized && (
+          <div className="alert alert-warning">
+            Warning: You do not have permission to modify this customer record.
+          </div>
+        )}
 
         <div className="form-row-2">
           <div>
             <label>Customer Name</label>
-            <input required value={form.name} onChange={set('name')} />
+            <input
+              required
+              value={form.name}
+              onChange={set('name')}
+              disabled={saving || !isAuthorized}
+              placeholder="Customer Name"
+            />
           </div>
           <div>
             <label>Phone</label>
-            <input required value={form.phone} onChange={set('phone')} />
+            <input
+              required
+              value={form.phone}
+              onChange={set('phone')}
+              disabled={saving || !isAuthorized}
+              placeholder="Phone Number(s)"
+            />
           </div>
         </div>
 
         <div>
           <label>Detailed Address</label>
-          <textarea required rows={3} value={form.address} onChange={set('address')} />
+          <input
+            required
+            value={form.address}
+            onChange={set('address')}
+            disabled={saving || !isAuthorized}
+            placeholder="Detailed Address"
+          />
         </div>
 
         <div className="form-row-2">
           <div>
             <label>Product Name</label>
-            <input required value={form.productName} onChange={set('productName')} />
+            <input
+              required
+              value={form.productName}
+              onChange={set('productName')}
+              disabled={saving || !isAuthorized}
+              placeholder="Product Name"
+            />
           </div>
-          {isTechnicianRecord && (
+          <div>
+            <label>Visit Date</label>
+            <input
+              required
+              type="date"
+              value={form.visitDate}
+              onChange={set('visitDate')}
+              disabled={saving || !isAuthorized}
+            />
+          </div>
+        </div>
+
+        <div className="form-row-2">
+          {isTechnicianRecord ? (
             <div>
-              <label>Visit Type</label>
-              <div className="radio-group">
-                <label className="radio-option">
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Visit Type</label>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingTop: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                   <input
                     type="radio"
-                    name="editVisitType"
+                    name="modalVisitType"
                     value="Installation"
-                    checked={form.visitType === 'Installation'}
-                    onChange={set('visitType')}
+                    checked={currentVisitTypeNormalized === 'installation'}
+                    onChange={() => setForm((f) => ({ ...f, visitType: 'Installation' }))}
+                    disabled={saving || !isAuthorized}
                   />
                   Installation
                 </label>
-                <label className="radio-option">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                   <input
                     type="radio"
-                    name="editVisitType"
+                    name="modalVisitType"
                     value="Service"
-                    checked={form.visitType === 'Service'}
-                    onChange={set('visitType')}
+                    checked={currentVisitTypeNormalized === 'service'}
+                    onChange={() => setForm((f) => ({ ...f, visitType: 'Service' }))}
+                    disabled={saving || !isAuthorized}
                   />
                   Service
                 </label>
               </div>
             </div>
-          )}
-          {isSalespersonRecord && (
+          ) : (
             <div>
-              <label>Customer Type</label>
-              <div className="radio-group">
-                {CUSTOMER_TYPES.map((t) => (
-                  <label className="radio-option" key={t}>
-                    <input
-                      type="radio"
-                      name="editCustomerType"
-                      value={t}
-                      checked={form.customerType === t}
-                      onChange={set('customerType')}
-                    />
-                    {t}
-                  </label>
-                ))}
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>Customer Type</label>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingTop: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="modalCustomerType"
+                    value="Hot"
+                    checked={currentTypeNormalized === 'hot'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Hot' }))}
+                    disabled={saving || !isAuthorized}
+                  />
+                  Hot
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="modalCustomerType"
+                    value="Cold"
+                    checked={currentTypeNormalized === 'cold'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Cold' }))}
+                    disabled={saving || !isAuthorized}
+                  />
+                  Cold
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="modalCustomerType"
+                    value="Warm"
+                    checked={currentTypeNormalized === 'warm'}
+                    onChange={() => setForm((f) => ({ ...f, customerType: 'Warm' }))}
+                    disabled={saving || !isAuthorized}
+                  />
+                  Warm
+                </label>
               </div>
             </div>
           )}
-        </div>
 
-        <div className="form-row-2">
-          <div>
-            <label>Visit Date</label>
-            <input required type="date" value={form.visitDate} onChange={set('visitDate')} />
-          </div>
           <div>
             <label>Next Visit Date</label>
-            <input type="date" value={form.nextVisitDate} onChange={set('nextVisitDate')} />
+            <input
+              required
+              type="date"
+              value={form.nextVisitDate}
+              onChange={set('nextVisitDate')}
+              disabled={saving || !isAuthorized}
+            />
           </div>
         </div>
 
-        <div className="modal-actions">
-          <button type="button" className="btn btn-outline" onClick={onClose}>
+        <div className="modal-actions" style={{ marginTop: 20 }}>
+          <button type="button" className="btn btn-outline" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={saving}>
+          <button type="submit" className="btn btn-primary" disabled={saving || !isAuthorized}>
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

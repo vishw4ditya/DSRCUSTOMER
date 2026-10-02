@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import api from '../api/axios';
+import { getCustomers, deleteCustomer } from '../services/firebase';
 import { isDueToday, sortDueTodayFirst } from '../utils/dateUtils';
 import { CUSTOMER_TYPES, customerTypeBadgeClass } from '../customerTypes';
 import CustomerEditModal from './CustomerEditModal';
@@ -26,31 +26,35 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     setLoading(true);
     setError('');
     try {
-      const params = { addedByRole: role };
-      Object.entries(filters).forEach(([k, v]) => {
-        if (v) params[k] = v;
-      });
-      const res = await api.get('/customers', { params });
-      setRecords(sortDueTodayFirst(res.data));
+      const data = await getCustomers();
+      let filtered = data || [];
+
+      if (role) {
+        filtered = filtered.filter((r) => !r.addedByRole || r.addedByRole === role || r.salespersonRole === role);
+      }
+
+      if (filters.search) {
+        const term = filters.search.toLowerCase();
+        filtered = filtered.filter(
+          (r) =>
+            r.customer?.toLowerCase().includes(term) ||
+            r.phone?.toLowerCase().includes(term) ||
+            r.location?.toLowerCase().includes(term)
+        );
+      }
+
+      setRecords(sortDueTodayFirst(filtered));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load customer data');
+      console.error('[RoleCustomerDataTable] Error loading customer data:', err);
+      setError('Failed to load customer visit data');
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, role]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const buildExportParams = () => {
-    const params = { addedByRole: role };
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v) params[k] = v;
-    });
-    return params;
-  };
 
   const downloadBlob = (data, mimeType, filename) => {
     const url = window.URL.createObjectURL(new Blob([data], { type: mimeType }));
@@ -62,23 +66,26 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
     link.remove();
   };
 
-  const handleExportCsv = async () => {
-    const res = await api.get('/customers/export', { params: buildExportParams(), responseType: 'blob' });
-    downloadBlob(res.data, 'text/csv', `${role.toLowerCase()}-data-${Date.now()}.csv`);
+  const handleExportCsv = () => {
+    const header = 'Customer,Phone,Role,Branch,Location,Status,Date\n';
+    const rows = records.map((r) => `"${r.customer}","${r.phone}","${r.addedByRole || role}","${r.branch}","${r.location}","${r.status}","${r.date}"`).join('\n');
+    downloadBlob(header + rows, 'text/csv', `${role.toLowerCase()}-data-${Date.now()}.csv`);
   };
 
-  const handleExportPdf = async () => {
-    const res = await api.get('/customers/export/pdf', { params: buildExportParams(), responseType: 'blob' });
-    downloadBlob(res.data, 'application/pdf', `${role.toLowerCase()}-data-${Date.now()}.pdf`);
+  const handleExportPdf = () => {
+    const text = `${role} Customer Visit Report\nGenerated on ${new Date().toLocaleDateString()}\n\n` +
+      records.map((r) => `${r.customer} (${r.phone}) - ${r.location} | Status: ${r.status}`).join('\n');
+    downloadBlob(text, 'text/plain', `${role.toLowerCase()}-report-${Date.now()}.txt`);
   };
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete the visit record for "${name}"? This cannot be undone.`)) return;
     try {
-      await api.delete(`/customers/${id}`);
-      loadData();
+      await deleteCustomer(id);
+      await loadData();
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not delete this record');
+      console.error('[RoleCustomerDataTable] Delete error:', err);
+      setError('Could not delete this record');
     }
   };
 
@@ -103,143 +110,72 @@ export default function RoleCustomerDataTable({ role, showZoneBranchFilters, zon
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="filter-bar">
-        {showZoneBranchFilters && (
-          <div className="filter-field">
-            <label>Zone</label>
-            <select value={filters.zone} onChange={set('zone')}>
-              <option value="">All</option>
-              {zones.map((z) => (
-                <option key={z._id} value={z._id}>
-                  {z.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <div className="filter-field">
-          <label>Branch</label>
-          <select value={filters.branch} onChange={set('branch')}>
-            <option value="">All</option>
-            {branches.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        {isTechnician && (
-          <div className="filter-field">
-            <label>Visit Type</label>
-            <select value={filters.visitType} onChange={set('visitType')}>
-              <option value="">All</option>
-              <option value="Installation">Installation</option>
-              <option value="Service">Service</option>
-            </select>
-          </div>
-        )}
-        {isSalesperson && (
-          <div className="filter-field">
-            <label>Customer Type</label>
-            <select value={filters.customerType} onChange={set('customerType')}>
-              <option value="">All</option>
-              {CUSTOMER_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <div className="filter-field">
-          <label>Product</label>
-          <input placeholder="Product name" value={filters.productName} onChange={set('productName')} />
-        </div>
-        <div className="filter-field">
-          <label>From</label>
-          <input type="date" value={filters.dateFrom} onChange={set('dateFrom')} />
-        </div>
-        <div className="filter-field">
-          <label>To</label>
-          <input type="date" value={filters.dateTo} onChange={set('dateTo')} />
-        </div>
-        <div className="filter-field">
-          <label>Search</label>
-          <input placeholder="Customer name / phone" value={filters.search} onChange={set('search')} />
-        </div>
+      <div className="table-toolbar">
+        <input
+          className="table-search-input"
+          placeholder="Search by customer name, phone, address..."
+          value={filters.search}
+          onChange={set('search')}
+        />
       </div>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Branch</th>
+              <th>Location</th>
+              <th>Visit Details</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
               <tr>
-                <th>Customer</th>
-                <th>Phone</th>
-                <th>Address</th>
-                <th>Product</th>
-                <th>Visit Date</th>
-                <th>Next Visit</th>
-                {isTechnician && <th>Type</th>}
-                {isSalesperson && <th>Customer Type</th>}
-                <th>Added By</th>
-                <th>Zone / Branch</th>
-                <th>Action</th>
+                <td colSpan={7} style={{ textAlign: 'center' }}>
+                  Loading visit records...
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {records.length === 0 && (
-                <tr className="empty-row">
-                  <td colSpan={9 + extraColumnCount}>No {role.toLowerCase()} records match these filters.</td>
-                </tr>
-              )}
-              {records.map((r) => (
-                <tr key={r._id} className={isDueToday(r.nextVisitDate) ? 'row-due-today' : ''}>
-                  <td>{r.name}</td>
-                  <td>{r.phone}</td>
-                  <td style={{ maxWidth: 220 }}>
-                    <CopyableAddress address={r.liveLocation?.address} />
-                  </td>
-                  <td>{r.productName}</td>
-                  <td>{new Date(r.visitDate).toLocaleDateString()}</td>
-                  <td>
-                    {r.nextVisitDate ? new Date(r.nextVisitDate).toLocaleDateString() : '-'}
-                    {isDueToday(r.nextVisitDate) && <span className="due-today-badge">Due Today</span>}
-                  </td>
-                  {isTechnician && <td>{r.visitType || '-'}</td>}
-                  {isSalesperson && (
+            )}
+            {!loading && records.length === 0 && (
+              <tr className="empty-row">
+                <td colSpan={7}>No customer visit records found.</td>
+              </tr>
+            )}
+            {!loading &&
+              records.map((r) => {
+                const recId = r.id || r._id;
+                return (
+                  <tr key={recId}>
                     <td>
-                      {r.customerType ? (
-                        <span className={`badge ${customerTypeBadgeClass(r.customerType)}`}>{r.customerType}</span>
-                      ) : (
-                        '-'
-                      )}
+                      <strong>{r.customer}</strong>
                     </td>
-                  )}
-                  <td>
-                    {r.addedBy?.name} <small>({r.addedBy?.userId})</small>
-                  </td>
-                  <td>
-                    {r.zone?.name} / {r.branch?.name}
-                  </td>
-                  <td>
-                    <div className="action-group">
-                      <button className="btn btn-outline btn-sm" onClick={() => setEditingRecord(r)}>
-                        Edit
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r._id, r.name)}>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    <td>{r.phone}</td>
+                    <td>{r.branch}</td>
+                    <td>
+                      <CopyableAddress address={r.location} />
+                    </td>
+                    <td>{r.visitType || r.notes || 'Routine Visit'}</td>
+                    <td>{r.date}</td>
+                    <td>
+                      <div className="action-group">
+                        <button className="btn btn-outline btn-sm" onClick={() => setEditingRecord(r)}>
+                          Edit
+                        </button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(recId, r.customer)}>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
 
       {editingRecord && (
         <CustomerEditModal
