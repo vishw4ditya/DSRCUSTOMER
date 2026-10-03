@@ -5,6 +5,7 @@ import StatCards from '../dashboard/StatCards';
 import LeadOverview from '../dashboard/LeadOverview';
 import VisitsTable from '../dashboard/VisitsTable';
 import FollowUpsSection from '../dashboard/FollowUpsSection';
+import RoleModulesPanel from '../dashboard/RoleModulesPanel';
 
 import CustomerDataPanel from '../CustomerDataPanel';
 import UserManagementPanel from '../UserManagementPanel';
@@ -46,6 +47,7 @@ export default function DashboardLayout({ children }) {
               </div>
             ) : (
               <>
+                <RoleModulesPanel />
                 <StatCards stats={stats} />
                 <div className="dash-two-col">
                   <LeadOverview data={leadOverview} />
